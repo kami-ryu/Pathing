@@ -1,0 +1,118 @@
+import pygame, sys
+import numpy as np
+from pygame.locals import * 
+
+mainClock = pygame.time.Clock()
+
+pygame.init()
+
+# -- screen
+
+screen_size = (500,500)
+screen = pygame.display.set_mode(screen_size)
+
+white = (255,255,255)
+black = (0,0,0)
+
+myfont = pygame.font.Font(None,20)
+
+# -- Functions
+
+def move_rect(setp_x,setp_y,pos_x,pos_y):
+  
+  speed = 3
+  y_dist = setp_y - pos_y
+  x_dist = setp_x - pos_x
+  true_dist = np.sqrt(y_dist**2 + x_dist**2)
+  if true_dist > 2:
+    reduct_C = speed / true_dist
+  else:
+    reduct_C = 0
+  x_vel = reduct_C*x_dist
+  y_vel = reduct_C*y_dist
+  velocity = (x_vel,y_vel)
+  
+  return (velocity)
+
+# -- Variables
+
+t1 = 0
+
+rect1_pos = [20,20]
+rect2_pos = [200,200]
+
+coord_setpoint_rect1 = [20,20]
+coord_setpoint_rect2 = [200,200]
+
+left_click = False
+right_click = False
+
+rect1_selected = False
+rect2_selected = False
+rect_list = []
+
+# -- Main Loop
+
+run = True
+while run:
+  
+  screen.fill(black)
+  
+  mx,my = pygame.mouse.get_pos()
+  
+  t1 += 1/60
+  
+  rect1_color = white
+  if rect1_selected:
+    rect1_color = (120,120,120)
+  rect2_color = white
+  if rect2_selected:
+    rect2_color = (120,120,120)
+  
+  rect1 = pygame.Rect(rect1_pos[0],rect1_pos[1],20,20)
+  rect2 = pygame.Rect(rect2_pos[0],rect2_pos[1],20,20)
+  pygame.draw.rect(screen,rect1_color,rect1)
+  pygame.draw.rect(screen,rect2_color,rect2)
+  
+  rect1_vel = move_rect(coord_setpoint_rect1[0],coord_setpoint_rect1[1],rect1_pos[0],rect1_pos[1])
+  rect2_vel = move_rect(coord_setpoint_rect2[0],coord_setpoint_rect2[1],rect2_pos[0],rect2_pos[1])
+  
+  rect1_pos[0] += rect1_vel[0]
+  rect1_pos[1] += rect1_vel[1]
+  
+  rect2_pos[0] += rect2_vel[0]
+  rect2_pos[1] += rect2_vel[1]
+  
+  collide_rect1 = rect1.collidepoint(mx,my)
+  collide_rect2 = rect2.collidepoint(mx,my)
+  
+  for event in pygame.event.get():
+    
+    if event.type == pygame.MOUSEBUTTONDOWN:
+      if event.button == 1:
+        left_click = True
+        if collide_rect1:
+          rect1_selected = True
+        elif collide_rect2:
+          rect2_selected = True
+        else:
+          rect1_selected = False
+          rect2_selected = False
+      if event.button == 3:
+        right_click = True
+        if rect1_selected:
+          coord_setpoint_rect1 = mx,my
+        if rect2_selected:
+          coord_setpoint_rect2 = mx,my
+      
+    if event.type == pygame.MOUSEBUTTONUP:
+      right_click = False
+      left_click = False
+    
+    if event.type == pygame.QUIT:
+      run = False
+      pygame.quit()
+      sys.exit()
+  
+  pygame.display.update()
+  mainClock.tick(60)
