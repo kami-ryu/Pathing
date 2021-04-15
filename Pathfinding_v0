@@ -1,0 +1,115 @@
+import pygame, sys
+from pygame.locals import * 
+
+mainClock = pygame.time.Clock()
+
+pygame.init()
+
+# -- screen
+
+screen_size = (500,500)
+screen = pygame.display.set_mode(screen_size)
+
+white = (255,255,255)
+black = (0,0,0)
+
+myfont = pygame.font.Font(None,20)
+
+# -- Functions
+
+def move_rect(setpoint,pos1,pos0,t1,t0):
+  
+  setp_x = setpoint[0]
+  setp_y = setpoint[1]
+  pos_x1 = pos1[0]
+  pos_y1 = pos1[1]
+  pos_x0 = pos0[0]
+  pos_y0 = pos0[1]
+  
+  Kp = 0.09
+  Kd = 0.009
+  
+  error_x = pos_x1 - setp_x
+  derror_x = (pos_x1 - pos_x0)/(t1-t0)
+  output_x = Kd*derror_x + Kp*error_x
+  error_y = pos_y1 - setp_y
+  derror_y = (pos_y1 - pos_y0)/(t1-t0)
+  output_y = Kd*derror_y + Kp*error_y
+  
+  return (output_x,output_y)
+
+# -- Variables
+
+t1 = 0
+t0 = 0
+
+rect1_pos = [20,20]
+rect1_pos0 = [20,20]
+x_velocity = 0
+y_velocity = 0
+
+coord_setpoint = [20,20]
+
+click = False
+
+
+# -- Main Loop
+
+run = True
+while run:
+  
+  screen.fill(black)
+  
+  mx,my = pygame.mouse.get_pos()
+  
+  t1 += 1/60
+  t0 = t1 - 1
+  
+  rect1 = pygame.Rect(rect1_pos[0],rect1_pos[1],20,20)
+  pygame.draw.rect(screen,white,rect1)
+  
+  if coord_setpoint[0] - rect1_pos[0] > 2:
+    x_velocity = 1
+  elif coord_setpoint[0] - rect1_pos[0] < -2:
+    x_velocity = -1
+  else:
+    x_velocity = 0
+    
+  if coord_setpoint[1] - rect1_pos[1] > 2:
+    y_velocity = 1
+  elif coord_setpoint[1] - rect1_pos[1] < -2:
+    y_velocity = -1
+  else:
+    y_velocity = 0
+  
+  rect1_pos[0] += x_velocity
+  rect1_pos[1] += y_velocity
+  
+  
+  
+  text = myfont.render('x setpoint: '+str(coord_setpoint[0]),False,white)
+  screen.blit(text,(400,20))
+  
+  text = myfont.render('y setpoint: '+str(coord_setpoint[1]),False,white)
+  screen.blit(text,(400,40))
+  
+  text = myfont.render('time: '+str(t1),False,white)
+  screen.blit(text,(400,60))
+  
+  for event in pygame.event.get():
+    
+    if event.type == pygame.MOUSEBUTTONDOWN:
+      click = True
+      coord_setpoint[0] = mx
+      coord_setpoint[1] = my
+      
+    if event.type == pygame.MOUSEBUTTONUP:
+      click = False
+    
+    if event.type == pygame.QUIT:
+      run = False
+      pygame.quit()
+      sys.exit()
+  
+  pygame.display.update()
+  mainClock.tick(60)
