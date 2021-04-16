@@ -1,6 +1,6 @@
 import pygame, sys
 import numpy as np
-from pygame.locals import * 
+from pygame.locals import *
 
 mainClock = pygame.time.Clock()
 
@@ -8,113 +8,104 @@ pygame.init()
 
 # -- screen
 
-screen_size = (500,500)
+screen_size = (500, 500)
 screen = pygame.display.set_mode(screen_size)
 
-white = (255,255,255)
-black = (0,0,0)
-red = (255,0,0)
+white = (255, 255, 255)
+black = (0, 0, 0)
+red = (255, 0, 0)
 
-myfont = pygame.font.Font(None,20)
+myfont = pygame.font.Font(None, 20)
+
+# -- Classes
+
+class Cell:
+    def __init__(self,x_pos,y_pos,setp_x,setp_y,height,width,color,selected):
+        self.x_pos = x_pos
+        self.y_pos = y_pos
+        self.setp_x = setp_x
+        self.setp_y = setp_y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.selected = selected
 
 # -- Functions
 
-def moveTo(pos_x,pos_y,setp_x,setp_y):
-  speed = 3
-  y_dist = setp_y - pos_y
-  x_dist = setp_x - pos_x
-  true_dist = np.sqrt(y_dist**2 + x_dist**2)
-  if true_dist > 2:
-    reduct_C = speed / true_dist
-  else:
-    reduct_C = 0
-  x_vel = reduct_C*x_dist
-  y_vel = reduct_C*y_dist
-  velocity = (x_vel,y_vel)
-  return velocity
+def moveTo(pos_x, pos_y, setp_x, setp_y):
+    speed = 3
+    y_dist = setp_y - pos_y
+    x_dist = setp_x - pos_x
+    true_dist = np.sqrt(y_dist ** 2 + x_dist ** 2)
+    if true_dist > 2:
+        reduct_C = speed / true_dist
+    else:
+        reduct_C = 0
+    x_vel = reduct_C * x_dist
+    y_vel = reduct_C * y_dist
+    velocity = (x_vel, y_vel)
+    return velocity
 
 # -- Variables
 
 t1 = 0
-setp_x = 250
-setp_y = 250
-x_vel = 0
-y_vel = 0
 
 left_click = False
 right_click = False
 
+cell1 = Cell(20,20,350,120,20,20,red,False)
+cell2 = Cell(50,50,20,450,20,20,white,False)
 
+cell_list = [cell1,cell2]
 
-playerect_list = [[20,20,20,20],[50,50,20,20]]
-
-rect_list = [pygame.Rect(300,350,100,20)]
+rect_list = [pygame.Rect(300, 350, 100, 20)]
 
 # -- Main Loop
 
 run = True
 while run:
-  
-  screen.fill(black)
-  
-  mx,my = pygame.mouse.get_pos()
-  
-  t1 += 1/60
-  
-  for rect in playerect_list:
+
+    screen.fill(black)
+
+    mx, my = pygame.mouse.get_pos()
+
+    t1 += 1 / 60
+
+    for cell in cell_list:
+        velocity = moveTo(cell.x_pos,cell.y_pos,cell.setp_x,cell.setp_y)
+        x_vel = velocity[0]
+        y_vel = velocity[1]
+        cell.x_pos += x_vel
+        cell.y_pos += y_vel
+        cell_rect = pygame.Rect(cell.x_pos,cell.y_pos,cell.width,cell.height)
+        pygame.draw.rect(screen,cell.color,cell_rect)
+
+    for rect in rect_list:
+        pygame.draw.rect(screen, red, rect)
+
+    text = myfont.render('cell1.setp_x: ' + str(cell1.setp_x), False, white)
+    screen.blit(text, (350, 20))
+
+    text = myfont.render('cell1.setp_y: ' + str(cell1.setp_y), False, white)
+    screen.blit(text, (350, 40))
+
+    for event in pygame.event.get():
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                left_click = True
+
+            if event.button == 3:
+                right_click = True
     
-    rect_velocity = moveTo(rect[0],rect[1],mx,my)
-    
-    x_vel = rect_velocity[0]
-    y_vel = rect_velocity[1]
-    
-    rect[0] += x_vel
-    rect[1] += y_vel
-  
-  for rect in playerect_list:
-    pygame.Rect(rect[0],rect[1],rect[2],rect[3])
-    pygame.draw.rect(screen,white,rect)
-  
-  for rect in rect_list:
-    pygame.draw.rect(screen,red,rect)
-  
-  text = myfont.render('-: '+str(0),False,white)
-  screen.blit(text,(350,20))
-  
-  text = myfont.render('-: '+str(0),False,white)
-  screen.blit(text,(350,40))
-  
-  for event in pygame.event.get():
-    
-    '''
-    if event.type == pygame.MOUSEBUTTONDOWN:
-      if event.button == 1:
-        left_click = True
-        if collide_rect1:
-          rect1_selected = True
-        elif collide_rect2:
-          rect2_selected = True
-        else:
-          rect1_selected = False
-          rect2_selected = False
-      if event.button == 3:
-        right_click = True
-        if rect1_selected:
-          coord_setpoint_rect1 = mx,my
-        if rect2_selected:
-          coord_setpoint_rect2 = mx,my
-        if rect1_selected and rect2_selected:
-          coord_setpoint_rect1 = mx,my
-          coord_setpoint_rect2 = mx+25,my+25
-      
-    if event.type == pygame.MOUSEBUTTONUP:
-      right_click = False
-      left_click = False '''
-    
-    if event.type == pygame.QUIT:
-      run = False
-      pygame.quit()
-      sys.exit()
-  
-  pygame.display.update()
-  mainClock.tick(60)
+        if event.type == pygame.MOUSEBUTTONUP:
+            right_click = False
+            left_click = False
+
+        if event.type == pygame.QUIT:
+            run = False
+            pygame.quit()
+            sys.exit()
+
+    pygame.display.update()
+    mainClock.tick(60)
