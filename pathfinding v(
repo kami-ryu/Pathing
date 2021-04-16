@@ -1,0 +1,122 @@
+import pygame, sys
+import numpy as np
+from pygame.locals import *
+
+mainClock = pygame.time.Clock()
+
+pygame.init()
+
+# -- screen
+
+screen_size = (500, 500)
+screen = pygame.display.set_mode(screen_size)
+
+white = (255, 255, 255)
+black = (0, 0, 0)
+red = (255, 0, 0)
+
+myfont = pygame.font.Font(None, 20)
+
+# -- Classes
+
+class Cell:
+    def __init__(self,x_pos,y_pos,setp_x,setp_y,height,width,color,selected):
+        self.x_pos = x_pos
+        self.y_pos = y_pos
+        self.setp_x = setp_x
+        self.setp_y = setp_y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.selected = selected
+
+# -- Functions
+
+def moveTo(pos_x, pos_y, setp_x, setp_y):
+    speed = 3
+    y_dist = setp_y - pos_y
+    x_dist = setp_x - pos_x
+    true_dist = np.sqrt(y_dist ** 2 + x_dist ** 2)
+    if true_dist > 2:
+        reduct_C = speed / true_dist
+    else:
+        reduct_C = 0
+    x_vel = reduct_C * x_dist
+    y_vel = reduct_C * y_dist
+    velocity = (x_vel, y_vel)
+    return velocity
+
+# -- Variables
+
+t1 = 0
+
+left_click = False
+right_click = False
+
+cell1 = Cell(20,20,350,120,20,20,red,False)
+cell2 = Cell(50,50,20,450,20,20,white,False)
+
+cell_list = [cell1,cell2]
+
+rect_list = [pygame.Rect(300, 350, 100, 20)]
+
+# -- Main Loop
+
+run = True
+while run:
+
+    screen.fill(black)
+
+    mx, my = pygame.mouse.get_pos()
+
+    t1 += 1 / 60
+
+    for cell in cell_list:
+
+        if cell.selected:
+            if right_click:
+                cell.setp_x = mx
+                cell.setp_y = my
+        velocity = moveTo(cell.x_pos,cell.y_pos,cell.setp_x,cell.setp_y)
+        x_vel = velocity[0]
+        y_vel = velocity[1]
+        cell.x_pos += x_vel
+        cell.y_pos += y_vel
+        cell_rect = pygame.Rect(cell.x_pos,cell.y_pos,cell.width,cell.height)
+        if left_click:
+            cell.selected = cell_rect.collidepoint(mx,my)
+        if cell.selected:
+            cell.color = (120,120,120)
+        else:
+            cell.color = white
+        pygame.draw.rect(screen,cell.color,cell_rect)
+
+    for rect in rect_list:
+        pygame.draw.rect(screen, red, rect)
+
+    text = myfont.render('cell1.setp_x: ' + str(cell1.setp_x), False, white)
+    screen.blit(text, (350, 20))
+
+    text = myfont.render('cell1.setp_y: ' + str(cell1.setp_y), False, white)
+    screen.blit(text, (350, 40))
+
+    for event in pygame.event.get():
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                left_click = True
+
+            if event.button == 3:
+                right_click = True
+    
+        if event.type == pygame.MOUSEBUTTONUP:
+            right_click = False
+            left_click = False
+
+        if event.type == pygame.QUIT:
+            run = False
+            pygame.quit()
+            sys.exit()
+
+    pygame.display.update()
+    mainClock.tick(60)
