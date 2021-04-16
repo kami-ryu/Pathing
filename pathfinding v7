@@ -84,7 +84,11 @@ cell2 = Cell(50,50,20,450,20,20,white,False)
 
 cell_list = [cell1,cell2]
 
-obs_list = [pygame.Rect(300, 350, 100, 20)]
+
+obs1 = pygame.Rect(300, 350, 100, 20)
+obs2 = pygame.Rect(120,120,90,10)
+
+obs_list = [obs1,obs2]
 
 # -- Main Loop
 
@@ -109,9 +113,8 @@ while run:
 
         cell.x_pos += x_vel
         cell.y_pos += y_vel
-        cell_rect = pygame.Rect(cell.x_pos,cell.y_pos,cell.width,cell.height)
+        cell_rect = pygame.Rect(cell.x_pos-cell.width/2,cell.y_pos-cell.height/2,cell.width,cell.height)
         velocity = collision_Reroute(cell_rect, obs_list, velocity)
-
 
         if left_click:
             cell.selected = cell_rect.collidepoint(mx,my)
